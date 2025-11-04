@@ -38,7 +38,7 @@ def main_menu():
         -The Ultimate Trip Desginer-
         ----------------------------
         
-        Welcom to the Ultimate Trip Designer!
+        Welcome to the Ultimate Trip Designer!
         Use this text based tool to create new trip plans
         and fill them with activities""")
         
@@ -276,7 +276,7 @@ def trips_menu(trip_id):
                         print("Press enter to continue:")
                         continue
 
-                    script = "SELECT name FROM activities WHERE activity_id = ?)"
+                    script = "SELECT name FROM activities WHERE activity_id = ?"
                     cur.execute(script,(act_chosen,))
                     act = cur.fetchone()
 
@@ -485,27 +485,27 @@ def edit_activity(activity_id):
         return
 
     if nameChosen != '':
-        cur.execute("UPDATE activities SET name = ? WHERE actvity_id = ?", (nameChosen, activity_id))
+        cur.execute("UPDATE activities SET name = ? WHERE activity_id = ?", (nameChosen, activity_id))
 
     if priceChosen == '-':
-        cur.execute("UPDATE activities SET cost = NULL WHERE actvity_id = ?", (activity_id,))
+        cur.execute("UPDATE activities SET cost = NULL WHERE activity_id = ?", (activity_id,))
     elif priceChosen != '':
-        cur.execute("UPDATE activities SET cost = ? WHERE actvity_id = ?", (priceChosen, activity_id))
+        cur.execute("UPDATE activities SET cost = ? WHERE activity_id = ?", (priceChosen, activity_id))
 
     if dateChosen == '-':
-        cur.execute("UPDATE activities SET date = NULL WHERE actvity_id = ?", (activity_id,))
+        cur.execute("UPDATE activities SET date = NULL WHERE activity_id = ?", (activity_id,))
     elif dateChosen != '':
-        cur.execute("UPDATE activities SET date = ? WHERE actvity_id = ?", (dateChosen, activity_id))
+        cur.execute("UPDATE activities SET date = ? WHERE activity_id = ?", (dateChosen, activity_id))
 
     if timeChosen == '-':
-        cur.execute("UPDATE activities SET time = NULL WHERE actvity_id = ?", (activity_id,))
+        cur.execute("UPDATE activities SET time = NULL WHERE activity_id = ?", (activity_id,))
     elif timeChosen != '':
-        cur.execute("UPDATE activities SET time = ? WHERE actvity_id = ?", (timeChosen, activity_id))
+        cur.execute("UPDATE activities SET time = ? WHERE activity_id = ?", (timeChosen, activity_id))
 
     if descChosen == '-':
-        cur.execute("UPDATE activities SET Description = NULL WHERE actvity_id = ?", (activity_id,))
+        cur.execute("UPDATE activities SET Description = NULL WHERE activity_id = ?", (activity_id,))
     elif descChosen != '':
-        cur.execute("UPDATE activities SET Description = ? WHERE actvity_id = ?", (descChosen, activity_id))
+        cur.execute("UPDATE activities SET Description = ? WHERE activity_id = ?", (descChosen, activity_id))
 
     conn.commit()
     print("Activity updated successfully!")
