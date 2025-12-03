@@ -1,4 +1,5 @@
 import os
+import time
 
 import sqlite3
 conn = sqlite3.connect('tripapp.db')
@@ -19,24 +20,115 @@ CREATE TABLE IF NOT EXISTS activities(
     trip_id INTEGER NOT NULL,
     name TEXT NOT NULL, 
     cost REAL,
+    currency TEXT,
     date TEXT,
     time TEXT,
     Description TEXT
-            )
-            
-
+            );
+CREATE TABLE IF NOT EXISTS users(
+    user_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_name TEXT,
+    user_home_tz TEXT,
+    user_home_currency TEXT
+          
+                  
+                  
+                  );
 """)
+
+
+def get_greeting(name_given):
+
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    file_path = os.path.join(base_dir, "..","..", "TEAM-30-Greeting-Microservice-MS3", "Greet Folder", "greeting.txt")
+
+
+
+    # Create folder if it doesn't exist
+    
+
+    ### Loop used for Request/Response to greeting.py
+    while True:
+        # Ask user for name
+        name = name_given.strip()
+
+        
+        # Write name to file
+        with open(file_path, "w", encoding="utf-8") as file:
+            file.write(name)
+
+        # Wait 1 second
+        time.sleep(1)
+
+        # Read and print contents of file
+        with open(file_path, "r", encoding="utf-8") as file:
+            content = file.read()
+            file.close()
+        return content
+
+
+def get_number_to_word(amount):
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    file_path = os.path.join(base_dir, "..","..", "Numbers-To-Words-Microservice", "convertnumber.txt")
+    while True:
+
+        amount = float(amount)
+        amount = f"${amount:.2f}"
+
+        with open(file_path, "w", encoding="utf-8") as file:
+            file.write(amount)
+
+        time.sleep(1.4)
+
+        # Read and print contents of file
+        with open(file_path, "r", encoding="utf-8") as file:
+            content = file.read()
+            file.close()
+        return content
+    
+def convert_timezone(tz1,tz2, time):
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    file_path = os.path.join(base_dir, "..","..", "Timezone Micorservice", "timezone-converter","request-file",  "timezone_request.txt")
+
+    finalString = tz1 + " " + tz2 + " " + time
+    with open(file_path, "w", encoding="utf-8") as file:
+        file.write(finalString)
+
+    time.sleep(1.4)
+
+    # Read and print contents of file
+    with open(file_path, "r", encoding="utf-8") as file:
+        content = file.read()
+        file.close()
+    return content
 
 
 
 
 def main_menu():
+
+    cur = conn.cursor()
+    cur.execute("""SELECT Count(*) FROM users""")
+    user_amount = cur.fetchone()
+
+    if user_amount[0] == 0:
+        user_creation()
+
     while True:
+
+        cur.execute("SELECT user_name, user_home_tz, user_home_currency FROM users LIMIT 1")
+        row = cur.fetchone()
+        user_name, user_home_tz, user_home_currency = row
+
+        message = get_greeting(user_name)
+
         clear_console()
-        print("""
+        print(f"""
         ----------------------------
         -The Ultimate Trip Desginer-
         ----------------------------
+        
+        {message}
         
         Welcome to the Ultimate Trip Designer!
         Use this text based tool to create new trip plans
@@ -68,8 +160,9 @@ def main_menu():
         COMMANDS:
         Type 'new' to create a new trip
         Type 'edit' to view/edit an existing trip
+        Type 'user' to edit profile info
         Type 'quit' to exit the program
-
+ 
 
         """
         print(menu)
@@ -102,10 +195,60 @@ def main_menu():
         elif command == 'quit':
             print('Ending Program!')
             break
+
+        elif command == 'user':
+            edit_user()
         else:
             print('Invalid Command!Please try again!')
             input('Press enter to continue:')
             continue    
+
+
+def edit_user():
+    clear_console()
+
+    sql = "SELECT user_name,user_home_tz, user_home_currency FROM users WHERE user_id = 1"
+    cur.execute(sql)
+    user = cur.fetchone()
+
+    name, timezone, currency = user 
+
+    print(f"""
+    --------------------------
+    -Edit Profie Information -
+    --------------------------
+
+    Name: {name if name else 'N/A'}
+    Timezone:   {timezone if timezone else 'N/A'}
+    Currency: {currency if currency else 'N/A'}
+    
+    Enter in new details or press enter to keep the field the same.
+    Type 'main to exit to the main menu'
+
+    """)
+
+    nameChosen = input("Give a new name for the user: ")
+    timezoneChosen = input("Give a new home timezone: ")
+    currencyChosen = input("Give a new currency for the user: ")
+
+    if 'main' in [nameChosen, timezoneChosen, currencyChosen]:
+        return 'main'
+    
+    confirm = input("Confirm you want to edit your profile by typing 'yes': ")
+    if confirm != 'yes':
+        return
+    if nameChosen != '':
+        cur.execute("UPDATE users SET user_name = ? WHERE user_id = ?", (nameChosen, 1))
+    if timezoneChosen != '':
+        cur.execute("UPDATE users SET user_home_tz = ? WHERE user_id = ?", (timezoneChosen, 1))
+    if currencyChosen != '':
+        cur.execute("UPDATE users SET user_home_currency = ? WHERE user_id = ?", (currencyChosen, 1))
+    
+    conn.commit()
+    print("Profile updated successfully!")
+    input('Press enter to continue: ')
+    return
+
 
 def create_trip():
     clear_console()
@@ -133,7 +276,7 @@ def create_trip():
         startDate = input("What is the start date of the trip('MM-DD-YYYY format'): ")
         break
 
-    endDate = input("What is the start date of the trip('MM-DD-YYYY format'): ")
+    endDate = input("What is the end date of the trip('MM-DD-YYYY format'): ")
     budget = input("What is the budget of the trip(in USD): ")
 
     startDate = startDate if startDate.strip() != '' else None
@@ -152,7 +295,7 @@ def create_trip():
     cur.execute(sql,(name,startDate,endDate,budget))
     conn.commit()
 
-    print("Trip Created! Returning to the main menu. Press enter to continue:")
+    input("Trip Created! Returning to the main menu. Press enter to continue:")
 
 def trips_list():
     pass
@@ -298,6 +441,8 @@ def trips_menu(trip_id):
              output =edit_trip(trip_id)
              if output == 'main':
                  return
+        
+
         else:
             print('Invalid Command!Please try again!')
             input('Press enter to continue:')
@@ -348,6 +493,30 @@ def add_activity(trip_id):
     input("Press enter to continue: ")
      
 
+def user_creation():
+
+
+    print("""
+        ----------------------------
+        -The Ultimate Trip Desginer-
+        ----------------------------
+        
+        Welcome to the Ultimate Trip Designer!
+        To start please give some user information!""")
+        
+    print("""
+        -------------------------------"""
+        )
+    
+    name = input("What is your name: ")
+    timezone = input("What is your home timezone: ")
+    currency = input("What is your preferred currency: ")
+
+    sql = 'INSERT INTO users(user_name,user_home_tz, user_home_currency) VALUES (?,?,?)'
+    cur.execute(sql,(name,timezone,currency))
+    conn.commit()
+
+
 
      
 
@@ -368,6 +537,22 @@ def full_itinerary(trip_id):
     cur.execute("SELECT name, date, time, cost FROM activities WHERE trip_id = ? ORDER BY date ASC, time ASC", (trip_id,))
     activities = cur.fetchall()
 
+    total_cost = sum(activity[3] for activity in activities if activity[3] is not None)
+    total_cost = total_cost if total_cost is not None else 0
+
+    if budget is not None:
+        difference = budget - total_cost
+    else:
+        difference = 0
+
+    if difference < 0:
+        underOrOver = 'over'
+    elif difference > 0:
+        underOrOver = 'under'
+    elif difference == 0:
+        underOrOver = 'over'
+    absDiff = abs(difference)
+
 
     print(f"""
     --------------------------
@@ -377,6 +562,7 @@ def full_itinerary(trip_id):
     Start Date: {startDate if startDate else 'N/A'}
     End Date:   {endDate if endDate else 'N/A'}
     Total Budget: {budget if budget else 'N/A'}
+    You are {get_number_to_word(difference).lower()} {underOrOver} budget.
 
     """)
 
@@ -519,4 +705,8 @@ def clear_console():
     else:
         os.system('clear')
 
-main_menu()
+#main_menu()
+
+#main_menu()
+
+convert_timezone("PST", "EST", '11:00')
